@@ -105,7 +105,7 @@ func (p *voltageProvider) Configure(ctx context.Context, req provider.ConfigureR
 
 func (p *voltageProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		NewNodeResource,
+		NewNodeResource, NewDashboardResource,
 	}
 }
 

@@ -50,6 +50,7 @@ func (c *Client) assertOK(r *http.Response, body []byte) error {
 	return newClientError(op, err)
 }
 
+// Node CRUD
 func (c *Client) CreateNode(ctx context.Context, m *nodeModel) error {
 	body := voltage.PostNodeCreateJSONRequestBody{
 		Name:          m.Name.ValueString(),
@@ -160,6 +161,64 @@ func (c *Client) DeleteNode(ctx context.Context, nodeID string) error {
 	})
 	if err != nil {
 		return newClientError("deleting node", err)
+	}
+
+	return c.assertOK(resp.HTTPResponse, resp.Body)
+}
+
+// Dashboard CRUD
+func (c *Client) CreateDashboard(ctx context.Context, m *dashboardModel) error {
+	body := voltage.PostDashboardsCreateJSONRequestBody{
+		NodeId: m.NodeID.ValueString(),
+		Type:   m.Type.ValueString(),
+	}
+
+	tflog.Info(ctx, "Creating Dashboard", map[string]any{"body": body})
+	resp, err := c.voltage.PostDashboardsCreateWithResponse(ctx, body)
+	if err != nil {
+		return newClientError("creating dashboard", err)
+	}
+
+	if err := c.assertOK(resp.HTTPResponse, resp.Body); err != nil {
+		return err
+	}
+
+	if resp.JSON200.DashboardId == nil {
+		return fmt.Errorf("field `dashboard_id` can't be nil: %w", ErrInvalidAPIResponseBody)
+	}
+	dashboardID := *resp.JSON200.DashboardId
+
+	ctx = tflog.SetField(ctx, "dashboard_id", dashboardID)
+	tflog.Info(ctx, "Dashboard Created")
+
+	if resp.JSON200.Created == nil {
+		return fmt.Errorf("field `created` can't be nil: %w", ErrInvalidAPIResponseBody)
+	}
+	created := *resp.JSON200.Created
+
+	m.DashboardID = types.StringValue(dashboardID)
+	m.Created = types.StringValue(created)
+
+	return nil
+}
+
+func (c *Client) ReadDashboard(ctx context.Context, nodeID string) error {
+	resp, err := c.voltage.PostNodeDashboardsWithResponse(ctx, voltage.NodeRequest{
+		NodeId: nodeID,
+	})
+	if err != nil {
+		return newClientError("retrieving dashboard", err)
+	}
+
+	return c.assertOK(resp.HTTPResponse, resp.Body)
+}
+
+func (c *Client) DeleteDashboard(ctx context.Context, dashboardID string) error {
+	resp, err := c.voltage.PostDashboardsDeleteWithResponse(ctx, voltage.PostDashboardsDeleteJSONRequestBody{
+		DashboardId: dashboardID,
+	})
+	if err != nil {
+		return newClientError("deleting dashboard", err)
 	}
 
 	return c.assertOK(resp.HTTPResponse, resp.Body)
