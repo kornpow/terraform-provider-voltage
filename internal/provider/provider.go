@@ -74,7 +74,7 @@ func (p *voltageProvider) Configure(ctx context.Context, req provider.ConfigureR
 		resp.Diagnostics.AddAttributeError(
 			path.Root("token"),
 			"Unknown Voltage Token",
-			"The provider cannot create the Voltage API client as there is a missing or empty value for the Volatage API Token. "+
+			"The provider cannot create the Voltage API client as there is a missing or empty value for the Voltage API Token. "+
 				"Set the token value in the configuration or use the VOLTAGE_TOKEN environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
