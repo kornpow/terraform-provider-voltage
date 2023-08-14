@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/qustavo/terraform-provider-voltage/internal/voltage"
 )
 
@@ -128,6 +130,10 @@ func (r *DashboardResource) Configure(ctx context.Context, req resource.Configur
 func (r *DashboardResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan dashboardModel
 
+	tflog.Debug(ctx, "this is a log")
+
+	tflog.Debug(ctx, "this is a log", map[string]any{"plan": plan})
+
 	// Get the state from the plan.
 	diag := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diag...)
@@ -148,6 +154,10 @@ func (r *DashboardResource) Create(ctx context.Context, req resource.CreateReque
 
 func (r *DashboardResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state dashboardModel
+
+	log := hclog.FromContext(ctx)
+
+	log.Debug("This is a debug log message")
 
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
